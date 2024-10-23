@@ -3,7 +3,9 @@ package com.example.lab.Products;
 import com.example.lab.Category.Category;
 import com.example.lab.Category.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,21 +37,30 @@ public class ProductController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(products);
     }
-
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody ProductRequest productRequest) {
-        Category category = categoryRepository.findById(productRequest.categoryId())
+    @GetMapping(params = {"category"})
+    public List<ProductDto> getProductsByCategoryName(@RequestParam String category) {
+        Category foundCategory = categoryRepository.findByName(category)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+        return productService.findByCategory(foundCategory)
+                .stream()
+                .map(productMapper::toDto)
+                .collect(Collectors.toList());
+    }
+    @PostMapping("/add")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto createNewProduct(@RequestBody @Validated ProductCreationRequest productCreationRequest) {
+        Category category = categoryRepository.findById(productCreationRequest.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
         Product newProduct = new Product(
-                productRequest.name(),
-                productRequest.author(),
-                productRequest.language(),
-                productRequest.wydawnictwo(),
+                productCreationRequest.getName(),
+                productCreationRequest.getAuthor(),
+                productCreationRequest.getLanguage(),
+                productCreationRequest.getWydawnictwo(),
                 category
         );
 
         Product savedProduct = productService.saveProduct(newProduct);
-        return ResponseEntity.ok(savedProduct);
+        return productMapper.toDto(savedProduct);
     }
 }
