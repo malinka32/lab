@@ -1,9 +1,8 @@
 package com.example.lab.Category;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,5 +20,13 @@ public class CategoryController {
                 .stream()
                 .map(categoryMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @PostMapping("/add")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CategoryDto createNewCategory(@RequestBody CategoryCreationRequest categoryCreationRequest) {
+        Category category = new Category(categoryCreationRequest.getName(), categoryCreationRequest.getDescription());
+        Category savedCategory = categoryService.saveCategory(category);
+        return categoryMapper.toDto(savedCategory);
     }
 }

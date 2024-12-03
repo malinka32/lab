@@ -1,6 +1,5 @@
 package com.example.lab.Category;
 
-
 import org.springframework.stereotype.Component;
 
 @Component

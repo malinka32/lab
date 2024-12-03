@@ -1,32 +1,41 @@
 package com.example.lab.User;
 
-import jakarta.annotation.Nullable;
+import com.example.lab.Role.Role;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
+
 @Entity
 @Table(name = "users")
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(name = "name", nullable = false)
     private String name;
+
     @Column(name = "surname", nullable = false)
     private String surname;
-    @Column(name = "email", nullable = false)
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+
     @Column(name = "contact_number")
-    @Nullable
     private String contactNumber;
 
-    public User(String name, String surname, String email, String contactNumber) {
-        this.name = name;
-        this.surname = surname;
-        this.email = email;
-        this.contactNumber = contactNumber;
-    }
+    @Column(name = "password", nullable = false)
+    private String password;
+
+    @ManyToMany
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id")
+    )
+    private Collection<Role> roles;
 }

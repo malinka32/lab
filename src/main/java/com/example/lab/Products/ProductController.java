@@ -9,6 +9,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -37,6 +38,7 @@ public class ProductController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(products);
     }
+
     @GetMapping(params = {"category"})
     public List<ProductDto> getProductsByCategoryName(@RequestParam String category) {
         Category foundCategory = categoryRepository.findByName(category)
@@ -46,6 +48,7 @@ public class ProductController {
                 .map(productMapper::toDto)
                 .collect(Collectors.toList());
     }
+
     @PostMapping("/add")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductDto createNewProduct(@RequestBody @Validated ProductCreationRequest productCreationRequest) {
@@ -62,5 +65,26 @@ public class ProductController {
 
         Product savedProduct = productService.saveProduct(newProduct);
         return productMapper.toDto(savedProduct);
+    }
+
+    @GetMapping(path = "{id}")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable("id") Long id) {
+        Product product = productService.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+        return ResponseEntity.ok(productMapper.toDto(product));
+    }
+
+    @PatchMapping(path = "{id}")
+    public ResponseEntity<ProductDto> updateProduct(
+            @PathVariable("id") Long id,
+            @RequestBody ProductUpdateRequest updateRequest) {
+        Product updatedProduct = productService.updateProduct(id, updateRequest);
+        return ResponseEntity.ok(productMapper.toDto(updatedProduct));
+    }
+
+    @DeleteMapping(path = "{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProduct(@PathVariable("id") Long id) {
+        productService.deleteProduct(id);
     }
 }
